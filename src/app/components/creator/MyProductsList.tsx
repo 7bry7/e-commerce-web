@@ -1,9 +1,8 @@
 import { useState } from 'react';
-import { Search, Filter, Edit2, MoreHorizontal, Eye, DollarSign, Download } from 'lucide-react';
+import { Search, Filter, Edit2, MoreHorizontal, Eye, Trash2 } from 'lucide-react';
 import { PRODUCTS } from '../../data/products';
 import { motion } from 'motion/react';
 
-// augment products with sales data for the dashboard view
 const MY_PRODUCTS = [
   { ...PRODUCTS[0], sales: 1250, revenue: 12487.50, status: 'active' },
   { ...PRODUCTS[2], sales: 843, revenue: 21075.00, status: 'active' },
@@ -15,12 +14,18 @@ const MY_PRODUCTS = [
 export default function MyProductsList() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
+  const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
 
   const filteredProducts = MY_PRODUCTS.filter(product => {
     const matchesSearch = product.title.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesFilter = filterStatus === 'all' || product.status === filterStatus;
     return matchesSearch && matchesFilter;
   });
+
+  // Toggle the options dropdown
+  const toggleDropdown = (id: string) => {
+    setOpenDropdownId(openDropdownId === id ? null : id);
+  };
 
   return (
     <div className="space-y-6">
@@ -57,16 +62,16 @@ export default function MyProductsList() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredProducts.map((product) => (
           <motion.div 
             key={product.id}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-[#161B28] border border-slate-800 rounded-xl overflow-hidden group hover:border-slate-600 transition-all duration-300 flex flex-col"
+            className="bg-[#161B28] border border-slate-800 rounded-xl overflow-visible group hover:border-slate-600 transition-all duration-300 flex flex-col relative"
           >
             {/* Thumbnail Area */}
-            <div className="relative aspect-video bg-black overflow-hidden">
+            <div className="relative aspect-video bg-black overflow-hidden rounded-t-xl">
               <img 
                 src={product.image} 
                 alt={product.title} 
@@ -85,13 +90,36 @@ export default function MyProductsList() {
 
             {/* Content Area */}
             <div className="p-5 flex flex-col flex-grow">
-              <div className="flex justify-between items-start mb-2">
+              <div className="flex justify-between items-start mb-2 relative">
                 <h3 className="text-white font-bold text-lg truncate pr-4" title={product.title}>
                   {product.title}
                 </h3>
-                <button className="text-slate-500 hover:text-white transition-colors">
-                  <MoreHorizontal className="w-5 h-5" />
-                </button>
+                
+                {/* Options Dropdown Trigger */}
+                <div className="relative">
+                  <button 
+                    onClick={() => toggleDropdown(product.id)}
+                    className="text-slate-500 hover:text-white transition-colors p-1"
+                  >
+                    <MoreHorizontal className="w-5 h-5" />
+                  </button>
+                  
+                  {/* Dropdown Menu */}
+                  {openDropdownId === product.id && (
+                    <div className="absolute right-0 mt-2 w-48 bg-[#0f1420] border border-slate-700 rounded-lg shadow-xl z-50 overflow-hidden">
+                      <button className="w-full text-left px-4 py-2 text-sm text-slate-300 hover:bg-slate-800 hover:text-white flex items-center gap-2">
+                        <Edit2 className="w-4 h-4" /> Edit Product
+                      </button>
+                      <button className="w-full text-left px-4 py-2 text-sm text-slate-300 hover:bg-slate-800 hover:text-white flex items-center gap-2">
+                        <Eye className="w-4 h-4" /> View Public Page
+                      </button>
+                      <div className="h-px bg-slate-700 my-1"></div>
+                      <button className="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-red-400/10 hover:text-red-300 flex items-center gap-2">
+                        <Trash2 className="w-4 h-4" /> Delete Asset
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
               
               <p className="text-slate-500 text-xs mb-4 line-clamp-2">{product.category}</p>
@@ -110,9 +138,6 @@ export default function MyProductsList() {
               <div className="mt-auto flex gap-3">
                 <button className="flex-1 bg-slate-800 hover:bg-slate-700 text-white text-sm font-medium py-2 rounded-lg transition-colors flex items-center justify-center gap-2">
                   <Edit2 className="w-3.5 h-3.5" /> Edit
-                </button>
-                <button className="px-3 bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white rounded-lg transition-colors" title="View Public Page">
-                  <Eye className="w-4 h-4" />
                 </button>
               </div>
             </div>

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Navbar } from '../components/Navbar';
 import { Footer } from '../components/Footer';
 import UploadProductForm from '../components/creator/UploadProductForm';
+import MyProductsList from '../components/creator/MyProductsList';
 import { 
   LayoutDashboard, 
   Package, 
@@ -305,7 +306,20 @@ export default function CreatorDashboard() {
                 </motion.div>
               )}
 
-              {activeTab !== 'overview' && activeTab !== 'upload' && (
+              {/* ADD THIS NEW BLOCK FOR MY PRODUCTS */}
+              {activeTab === 'products' && (
+                <motion.div
+                  key="products"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                >
+                  <MyProductsList />
+                </motion.div>
+              )}
+
+              {/* UPDATE THIS CONDITION to exclude 'products' */}
+              {activeTab !== 'overview' && activeTab !== 'upload' && activeTab !== 'products' && (
                 <motion.div
                   key="other"
                   initial={{ opacity: 0, y: 10 }}
