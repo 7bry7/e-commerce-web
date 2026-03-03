@@ -3,6 +3,7 @@ import { Navbar } from '../components/Navbar';
 import { Footer } from '../components/Footer';
 import UploadProductForm from '../components/creator/UploadProductForm';
 import MyProductsList from '../components/creator/MyProductsList';
+import { useStore } from '../store';
 import { 
   LayoutDashboard, 
   Package, 
@@ -14,9 +15,12 @@ import {
   MoreVertical,
   Calendar,
   ArrowUpRight,
-  ArrowDownRight
+  ArrowDownRight,
+  ShoppingBag,
+  ArrowRight
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { Link } from 'react-router';
 import { 
   LineChart, 
   Line, 
@@ -58,6 +62,8 @@ const RECENT_ACTIVITY = [
 
 export default function CreatorDashboard() {
   const [activeTab, setActiveTab] = useState('overview');
+  const user = useStore((state) => state.user);
+  const hasBuyerRole = user?.roles.includes('buyer');
 
   const sidebarItems = [
     { id: 'overview', label: 'Overview', icon: LayoutDashboard },
@@ -83,6 +89,32 @@ export default function CreatorDashboard() {
   return (
     <div className="min-h-screen bg-[#0A0E17] text-slate-300 font-sans selection:bg-[#00D28A]/30 selection:text-[#00D28A]">
       <Navbar />
+
+      {/* Role Switcher Banner - Only show if user has buyer role */}
+      {hasBuyerRole && (
+        <div className="bg-gradient-to-r from-purple-900/30 to-indigo-900/30 border-b border-purple-800/30">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-indigo-500 rounded-lg flex items-center justify-center">
+                  <ShoppingBag className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-white">You also have buyer access</p>
+                  <p className="text-xs text-slate-400">View your library and purchases</p>
+                </div>
+              </div>
+              <Link 
+                to="/dashboard"
+                className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-sm font-medium transition-colors"
+              >
+                Go to Buyer Dashboard
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
         <div className="flex flex-col md:flex-row gap-8">

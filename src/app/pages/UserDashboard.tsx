@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Navbar } from '../components/Navbar';
 import { Footer } from '../components/Footer';
 import { PRODUCTS } from '../data/products';
+import { useStore } from '../store';
 import { 
   LayoutGrid, 
   Settings, 
@@ -13,7 +14,9 @@ import {
   User as UserIcon,
   Bell,
   MoreVertical,
-  Clock
+  Clock,
+  Store,
+  ArrowRight
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Link } from 'react-router';
@@ -36,6 +39,8 @@ const WISHLIST_ITEMS = [
 export default function UserDashboard() {
   const [activeTab, setActiveTab] = useState('library');
   const [searchQuery, setSearchQuery] = useState('');
+  const user = useStore((state) => state.user);
+  const hasSellerRole = user?.roles.includes('seller');
 
   const filteredLibrary = PURCHASED_ITEMS.filter(item => 
     item.title.toLowerCase().includes(searchQuery.toLowerCase())
@@ -51,6 +56,32 @@ export default function UserDashboard() {
   return (
     <div className="min-h-screen bg-[#0A0E17] text-slate-300 font-sans selection:bg-[#00D28A]/30 selection:text-[#00D28A]">
       <Navbar />
+
+      {/* Role Switcher Banner - Only show if user has seller role */}
+      {hasSellerRole && (
+        <div className="bg-gradient-to-r from-emerald-900/30 to-cyan-900/30 border-b border-emerald-800/30">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-cyan-500 rounded-lg flex items-center justify-center">
+                  <Store className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-white">You have seller access</p>
+                  <p className="text-xs text-slate-400">Manage your products and sales</p>
+                </div>
+              </div>
+              <Link 
+                to="/creator"
+                className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-medium transition-colors"
+              >
+                Go to Seller Dashboard
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
         <div className="flex flex-col md:flex-row gap-8">

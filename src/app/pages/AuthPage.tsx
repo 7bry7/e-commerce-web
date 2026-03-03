@@ -1,12 +1,45 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Mail, Lock, User, ArrowRight, Github, Disc } from 'lucide-react';
-import { Link } from 'react-router';
+import { Mail, Lock, User, ArrowRight, Github, Disc, AlertCircle } from 'lucide-react';
+import { Link, useNavigate } from 'react-router';
 import { Navbar } from '../components/Navbar';
 import { Footer } from '../components/Footer';
+import { useStore } from '../store';
 
 export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(true);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [username, setUsername] = useState('');
+  const [error, setError] = useState('');
+  const login = useStore((state) => state.login);
+  const navigate = useNavigate();
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+
+    if (isLogin) {
+      // Handle login
+      const success = login(email, password);
+      if (success) {
+        // Redirect based on user role after login
+        const user = useStore.getState().user;
+        if (user?.roles.includes('seller')) {
+          navigate('/creator');
+        } else if (user?.roles.includes('buyer')) {
+          navigate('/dashboard');
+        } else {
+          navigate('/');
+        }
+      } else {
+        setError('Invalid email or password. Try: buyer@test.com, seller@test.com, or both@test.com (password: 123456)');
+      }
+    } else {
+      // Handle signup - for now, show message that it's not implemented
+      setError('Sign up is not yet implemented. Please use one of the test accounts to login.');
+    }
+  };
 
   return (
     <div className="min-h-screen bg-zinc-950 flex flex-col font-sans text-white">
@@ -58,7 +91,18 @@ export default function AuthPage() {
           </div>
 
           {/* Form Fields */}
-          <div className="px-8 pb-8 space-y-4">
+          <form onSubmit={handleSubmit} className="px-8 pb-8 space-y-4">
+            {error && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-red-950/50 border border-red-800 rounded-lg p-3 flex items-start gap-2"
+              >
+                <AlertCircle className="w-4 h-4 text-red-400 flex-shrink-0 mt-0.5" />
+                <p className="text-sm text-red-300">{error}</p>
+              </motion.div>
+            )}
+
             <AnimatePresence mode="wait">
               {!isLogin && (
                 <motion.div
@@ -74,6 +118,8 @@ export default function AuthPage() {
                       <input 
                         type="text" 
                         placeholder="Choose a username"
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value)}
                         className="w-full bg-zinc-950 border border-zinc-800 rounded-lg py-2.5 pl-10 pr-4 text-sm text-white placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-purple-500 transition-all"
                       />
                     </div>
@@ -89,6 +135,9 @@ export default function AuthPage() {
                 <input 
                   type="email" 
                   placeholder="name@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
                   className="w-full bg-zinc-950 border border-zinc-800 rounded-lg py-2.5 pl-10 pr-4 text-sm text-white placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-purple-500 transition-all"
                 />
               </div>
@@ -98,7 +147,7 @@ export default function AuthPage() {
               <div className="flex justify-between items-center px-1">
                 <label className="text-xs font-medium text-zinc-400">Password</label>
                 {isLogin && (
-                  <button className="text-xs text-purple-400 hover:text-purple-300 transition-colors">
+                  <button type="button" className="text-xs text-purple-400 hover:text-purple-300 transition-colors">
                     Forgot password?
                   </button>
                 )}
@@ -108,16 +157,34 @@ export default function AuthPage() {
                 <input 
                   type="password" 
                   placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
                   className="w-full bg-zinc-950 border border-zinc-800 rounded-lg py-2.5 pl-10 pr-4 text-sm text-white placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-purple-500 transition-all"
                 />
               </div>
             </div>
 
-            <button className="w-full bg-gradient-to-r from-cyan-600 to-purple-600 hover:from-cyan-500 hover:to-purple-500 text-white font-bold py-3 rounded-lg shadow-lg shadow-purple-900/20 transition-all flex items-center justify-center gap-2 mt-2 group">
+            {isLogin && (
+              <div className="bg-zinc-950/50 border border-zinc-800 rounded-lg p-3 mt-4">
+                <p className="text-xs text-zinc-400 mb-2">Test Accounts:</p>
+                <div className="text-xs text-zinc-500 space-y-1">
+                  <div>• buyer@test.com (Buyer only)</div>
+                  <div>• seller@test.com (Seller only)</div>
+                  <div>• both@test.com (Both roles)</div>
+                  <div className="text-purple-400 mt-2">Password: 123456</div>
+                </div>
+              </div>
+            )}
+
+            <button 
+              type="submit"
+              className="w-full bg-gradient-to-r from-cyan-600 to-purple-600 hover:from-cyan-500 hover:to-purple-500 text-white font-bold py-3 rounded-lg shadow-lg shadow-purple-900/20 transition-all flex items-center justify-center gap-2 mt-2 group"
+            >
               {isLogin ? 'Sign In' : 'Create Account'}
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </button>
-          </div>
+          </form>
 
           {/* Footer / Toggle */}
           <div className="bg-zinc-950/50 border-t border-zinc-800 p-4 text-center">

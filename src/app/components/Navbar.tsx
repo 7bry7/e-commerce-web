@@ -1,9 +1,30 @@
-import { Search, ShoppingCart, User, Menu } from 'lucide-react';
+import { Search, ShoppingCart, User, Menu, LogOut, Store, Package } from 'lucide-react';
 import { useState } from 'react';
-import { Link } from 'react-router';
+import { Link, useNavigate } from 'react-router';
+import { useStore } from '../store';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from './ui/dropdown-menu';
 
 export function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const user = useStore((state) => state.user);
+  const logout = useStore((state) => state.logout);
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/');
+  };
+
+  const hasBuyerRole = user?.roles.includes('buyer');
+  const hasSellerRole = user?.roles.includes('seller');
+  const sellLink = hasSellerRole ? '/creator' : '/become-seller';
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-slate-950/80 backdrop-blur-md border-b border-slate-800">
@@ -42,15 +63,87 @@ export function Navbar() {
 
           {/* Right Icons */}
           <div className="hidden md:flex items-center gap-4">
-            <Link to="/cart" className="text-slate-400 hover:text-white transition-colors">
-              <ShoppingCart className="h-6 w-6" />
-            </Link>
-            <Link to="/dashboard" className="text-slate-400 hover:text-white transition-colors">
-              <User className="h-6 w-6" />
-            </Link>
-            <Link to="/creator" className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-full text-sm font-medium transition-colors">
-              Sell
-            </Link>
+            {user ? (
+              <>
+                <Link to="/cart" className="text-slate-400 hover:text-white transition-colors">
+                  <ShoppingCart className="h-6 w-6" />
+                </Link>
+                
+                {/* User Dropdown Menu */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button className="text-slate-400 hover:text-white transition-colors focus:outline-none">
+                      <div className="flex items-center gap-2">
+                        <img 
+                          src={user.avatar} 
+                          alt={user.name}
+                          className="h-8 w-8 rounded-full border-2 border-slate-700"
+                        />
+                      </div>
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-56 bg-slate-900 border-slate-700">
+                    <DropdownMenuLabel className="text-slate-300">
+                      <div className="flex flex-col">
+                        <span className="font-medium">{user.name}</span>
+                        <span className="text-xs text-slate-500">{user.email}</span>
+                      </div>
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator className="bg-slate-700" />
+                    
+                    {hasBuyerRole && (
+                      <DropdownMenuItem asChild className="text-slate-300 focus:bg-slate-800 cursor-pointer">
+                        <Link to="/dashboard" className="flex items-center">
+                          <Package className="mr-2 h-4 w-4" />
+                          <span>My Library</span>
+                        </Link>
+                      </DropdownMenuItem>
+                    )}
+                    
+                    {hasSellerRole && (
+                      <DropdownMenuItem asChild className="text-slate-300 focus:bg-slate-800 cursor-pointer">
+                        <Link to="/creator" className="flex items-center">
+                          <Store className="mr-2 h-4 w-4" />
+                          <span>Seller Dashboard</span>
+                        </Link>
+                      </DropdownMenuItem>
+                    )}
+                    
+                    <DropdownMenuSeparator className="bg-slate-700" />
+                    <DropdownMenuItem 
+                      onClick={handleLogout}
+                      className="text-red-400 focus:bg-slate-800 focus:text-red-300 cursor-pointer"
+                    >
+                      <LogOut className="mr-2 h-4 w-4" />
+                      <span>Logout</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
+                {/* Sell Button - shown to all authenticated users */}
+                <Link 
+                  to={sellLink}
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-full text-sm font-medium transition-colors"
+                >
+                  {hasSellerRole ? 'Sell' : 'Become a Seller'}
+                </Link>
+              </>
+            ) : (
+              <>
+                <Link 
+                  to="/auth" 
+                  className="text-slate-400 hover:text-white transition-colors px-4 py-2"
+                >
+                  Login
+                </Link>
+                <Link 
+                  to="/auth" 
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-full text-sm font-medium transition-colors"
+                >
+                  Sign Up
+                </Link>
+              </>
+            )}
           </div>
 
           {/* Mobile menu button */}
@@ -72,6 +165,33 @@ export function Navbar() {
             <Link to="/" className="text-slate-300 hover:text-white block px-3 py-2 rounded-md text-base font-medium">Home</Link>
             <Link to="/marketplace" className="text-slate-300 hover:text-white block px-3 py-2 rounded-md text-base font-medium">Marketplace</Link>
             <Link to="/creators" className="text-slate-300 hover:text-white block px-3 py-2 rounded-md text-base font-medium">Creators</Link>
+            
+            {user ? (
+              <>
+                <Link to="/cart" className="text-slate-300 hover:text-white block px-3 py-2 rounded-md text-base font-medium">Cart</Link>
+                {hasBuyerRole && (
+                  <Link to="/dashboard" className="text-slate-300 hover:text-white block px-3 py-2 rounded-md text-base font-medium">My Library</Link>
+                )}
+                {hasSellerRole && (
+                  <Link to="/creator" className="text-slate-300 hover:text-white block px-3 py-2 rounded-md text-base font-medium">Seller Dashboard</Link>
+                )}
+                <Link to={sellLink} className="text-emerald-400 hover:text-emerald-300 block px-3 py-2 rounded-md text-base font-medium">
+                  {hasSellerRole ? 'Sell' : 'Become a Seller'}
+                </Link>
+                <button 
+                  onClick={handleLogout}
+                  className="text-red-400 hover:text-red-300 block px-3 py-2 rounded-md text-base font-medium w-full text-left"
+                >
+                  Logout
+                </button>
+              </>
+            ) : (
+              <>
+                <Link to="/auth" className="text-slate-300 hover:text-white block px-3 py-2 rounded-md text-base font-medium">Login</Link>
+                <Link to="/auth" className="text-emerald-400 hover:text-emerald-300 block px-3 py-2 rounded-md text-base font-medium">Sign Up</Link>
+              </>
+            )}
+            
             <div className="mt-4 px-3">
               <input
                 type="text"
